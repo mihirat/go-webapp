@@ -1,11 +1,11 @@
 package trace
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 )
 
-func TestOff(t *testing.T){
+func TestOff(t *testing.T) {
 	var silenceTracer Tracer = Off()
 	silenceTracer.Trace("data")
 }

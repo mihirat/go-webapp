@@ -10,6 +10,7 @@
         <ul id="messages"></ul>
         chat app with websocket
         <form id="chatbox">
+            {{ .UserData.name }}<br/>
             <textarea></textarea>
             <input type="submit" value="send" />
         </form>
@@ -25,7 +26,7 @@
                         alert("ERROR: websocket connection failed");
                         return false;
                     }
-                    socket.send(msgBox.val());
+                    socket.send(JSON.stringify({"Message": msgBox.val()}));
                     msgBox.val("");
                     return false;
                 });
@@ -38,7 +39,12 @@
                         alert("connection closed");
                     }
                     socket.onmessage = function(e) {
-                        messages.append($("<li>").text(e.data));
+                        var msg = eval("(" + e.data + ")");
+                        messages.append(
+                            $("<li>").append(
+                                $("<strong>").text(msg.Name + ": "),
+                                $("<span>").text(msg.Message + " on " + msg.When),
+                            ));
                     }
                 }
             });

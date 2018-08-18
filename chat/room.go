@@ -6,11 +6,12 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/mihirat/go-webapp/trace"
+	"github.com/stretchr/objx"
 )
 
 type room struct {
 	// channel to store msg to forward to another client
-	forward chan []byte
+	forward chan *message
 	join    chan *client
 	leave   chan *client
 	clients map[*client]bool
@@ -30,10 +31,16 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Fatal("ServeHTTP:", err)
 		return
 	}
+
+	authCookie, err := req.Cookie(AuthCookieName)
+	if err != nil {
+		log.Fatal("failed to get cookie:", err)
+	}
 	client := &client{
-		socket: socket,
-		send:   make(chan []byte, messageBufferSize),
-		room:   r,
+		socket:   socket,
+		send:     make(chan *message, messageBufferSize),
+		room:     r,
+		UserData: objx.MustFromBase64(authCookie.Value),
 	}
 	r.join <- client
 	defer func() { r.leave <- client }()
@@ -54,11 +61,11 @@ func (r *room) run() {
 			for client := range r.clients {
 				select {
 				case client.send <- msg:
-					r.tracer.Trace("client sent")
+					r.tracer.Trace("client sent:", msg.Message)
 				default:
 					delete(r.clients, client)
 					close(client.send)
-					r.tracer.Trace("message send faild. clean up client...")
+					r.tracer.Trace("message send failed. clean up client...")
 				}
 			}
 		}
@@ -67,7 +74,7 @@ func (r *room) run() {
 
 func newRoom() *room {
 	return &room{
-		forward: make(chan []byte),
+		forward: make(chan *message),
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
