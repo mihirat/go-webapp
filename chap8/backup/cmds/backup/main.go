@@ -16,7 +16,9 @@ type path struct {
 	Hash string
 }
 
-func (p path) string() string {
+// enables output printing in following format
+// by calling fmt.Printf("+ %s\n", path)
+func (p path) String() string {
 	return fmt.Sprintf("%s [%s]", p.Path, p.Hash)
 }
 
@@ -59,7 +61,7 @@ func main() {
 				fatalErr = err
 				return true
 			}
-			fmt.Printf("= %s/n", path)
+			fmt.Printf("= %s\n", path)
 			return false
 		})
 	case "add":

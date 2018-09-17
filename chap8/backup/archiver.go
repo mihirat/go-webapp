@@ -2,10 +2,10 @@ package backup
 
 import (
 	"archive/zip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"fmt"
 )
 
 type Archiver interface {
@@ -17,7 +17,7 @@ type zipper struct{}
 
 // to inform users to use "ZIP" variable to require archiver in zip format
 // don't need to inform users the internal implementation :)
-// var ZIP Archiver = (*zipper)(nil)
+var ZIP Archiver = (*zipper)(nil)
 
 func (z *zipper) DestFmt() func(int64) string {
 	return func(i int64) string {
